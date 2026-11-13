@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYPER NET | Management</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #080e1b;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background: #111c30;
+  border: 1px solid #263a59;
+  border-radius: 18px;
+  padding: 35px 25px;
+  box-shadow: 0 15px 50px #0008;
+}
+
+.logo {
+  text-align: center;
+  color: #38bdf8;
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #91a4bd;
+  margin-bottom: 30px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #d4e3f5;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #30445f;
+  border-radius: 9px;
+  background: #091426;
+  color: white;
+  outline: none;
+}
+
+input:focus {
+  border-color: #38bdf8;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(90deg,#0284c7,#38bdf8);
+  border: none;
+  border-radius: 9px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: .9;
+}
+
+#message {
+  text-align: center;
+  color: #f87171;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+#dashboard {
+  display: none;
+  width: 100%;
+  max-width: 700px;
+  background: #111c30;
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid #263a59;
+}
+
+#dashboard h2 {
+  color: #38bdf8;
+  margin-bottom: 15px;
+}
+
+#dashboard p {
+  color: #b5c6db;
+  margin-bottom: 25px;
+}
+
+.logout {
+  background: #dc3545;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box" id="loginBox">
+  <div class="logo">HYPER NET</div>
+  <div class="subtitle">Management System (نظام الإدارة)</div>
+
+  <form id="loginForm">
+    <label>Email (البريد الإلكتروني)</label>
+    <input type="email" id="email" required
+    placeholder="Enter your email">
+
+    <label>Password (كلمة المرور)</label>
+    <input type="password" id="password" required
+    placeholder="Enter your password">
+
+    <button type="submit" id="loginButton">
+      Sign In (تسجيل الدخول)
+    </button>
+  </form>
+
+  <div id="message"></div>
+</div>
+
+<div id="dashboard">
+  <h2>HYPER NET</h2>
+  <p>Welcome to your Management System (مرحباً بك في نظام الإدارة)</p>
+  <button class="logout" id="logoutButton">
+    Logout (تسجيل الخروج)
+  </button>
+</div>
+
+<script>
+const SUPABASE_URL = "https://hwrfugkjspjnytftypjl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_FchweqfKudUCf7S-51LVng_DFqQ6eRt";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const loginBox = document.getElementById("loginBox");
+const dashboard = document.getElementById("dashboard");
+const message = document.getElementById("message");
+
+function showDashboard() {
+  loginBox.style.display = "none";
+  dashboard.style.display = "block";
+}
+
+function showLogin() {
+  dashboard.style.display = "none";
+  loginBox.style.display = "block";
+}
+
+async function checkSession() {
+  const { data, error } = await db.auth.getSession();
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  if (data.session) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
+}
+
+document.getElementById("loginForm")
+.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const button = document.getElementById("loginButton");
+  button.disabled = true;
+  button.textContent = "Please wait...";
+  message.textContent = "";
+
+  const { error } = await db.auth.signInWithPassword({
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value
+  });
+
+  button.disabled = false;
+  button.textContent = "Sign In (تسجيل الدخول)";
+
+  if (error) {
+    message.textContent = error.message;
+  } else {
+    showDashboard();
+  }
+});
+
+document.getElementById("logoutButton")
+.addEventListener("click", async function() {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  showLogin();
+});
+
+checkSession();
+</script>
+
+</body>
+</html>
